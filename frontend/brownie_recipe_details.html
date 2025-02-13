@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    .recipe-container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .recipe-container img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .recipe-container h1 {
+      text-align: center;
+    }
+    .ingredients {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .ingredient-item {
+      text-align: center;
+      margin: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      width: 120px;
+    }
+    .ingredient-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      border-radius: 5px;
+    }
+    .recipe-container h2 {
+      margin-top: 20px;
+    }
+    .recipe-container p {
+      white-space: pre-line; /* Keeps line breaks */
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Recipe Details</h1>
+  </header>
+
+  <div class="recipe-container">
+    <img id="recipe-image" src="" alt="">
+    <h1 id="recipe-title"></h1>
+    
+    <h2>Ingredients</h2>
+    <div class="ingredients" id="recipe-ingredients"></div>
+    <p id="recipe-details"></p>
+    
+    <h2>Instructions</h2>
+    <p id="recipe-instructions"></p>
+  </div>
+
+  <script>
+    // Ingredient Image Dictionary
+    const ingredientImages = {
+      "Sugar": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/13108809_XL1_20221010.jpg",
+      "Flour": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/13185112_XL1_20210121.jpg",
+      "Eggs": "https://t4.ftcdn.net/jpg/10/44/32/17/360_F_1044321762_CzvLjsFYXspKRYHSUOOm78WqhIOa3i90.jpg",
+      "Butter": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/13006438_XL1_20230503.jpg",
+      "Vanilla Extract": "https://bakeking.com.sg/w-ebase-uploads/2021/09/bake-king-vanilla-essence-26ml.jpg",
+      "Cocoa Powder": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/13211304_XL1_20220124.jpg",
+      "Baking Powder": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/63785_XL1_20220320.jpg",
+      "Salt": "https://media.nedigital.sg/fairprice/fpol/media/images/product/XL/432823_XL1_20210504.jpg"
+    };
+
+    async function fetchRecipe() {
+      const sheetURL = "https://opensheet.elk.sh/14aSGOXb7QbHqcYh89CqfE7cLCflU2RZpDkYbh92Utl8/recipes";
+
+      // Get recipe name from URL (e.g., ?name=Chocolate%20Muffins)
+      const urlParams = new URLSearchParams(window.location.search);
+      const recipeName = urlParams.get("name");
+
+      if (!recipeName) {
+        document.body.innerHTML = "<h2 style='text-align:center;'>Recipe not found</h2>";
+        return;
+      }
+
+      try {
+        const response = await fetch(sheetURL);
+        const recipes = await response.json();
+
+        // Find the recipe by name
+        const recipe = recipes.find(r => r["Recipe Name"] === recipeName);
+
+        if (!recipe) {
+          document.body.innerHTML = "<h2 style='text-align:center;'>Recipe not found</h2>";
+          return;
+        }
+
+        // Fill the page with recipe details
+        document.getElementById("recipe-title").innerText = recipe["Recipe Name"];
+        document.getElementById("recipe-image").src = recipe["Image URL"];
+        document.getElementById("recipe-details").innerText = "\n" + recipe["Details"];
+        document.getElementById("recipe-instructions").innerText = recipe["Instructions"];
+
+        // Display Ingredients with Images
+        const ingredientsContainer = document.getElementById("recipe-ingredients");
+        const ingredientsArray = recipe["Ingredients"].split(",").map(i => i.trim()); // Split ingredients by commas
+
+        ingredientsArray.forEach(ingredient => {
+          const ingredientDiv = document.createElement("div");
+          ingredientDiv.classList.add("ingredient-item");
+
+          // Get image URL or fallback
+          const imgSrc = ingredientImages[ingredient.replace(/\d+/g, "").trim()] || "https://example.com/default.png";
+
+          ingredientDiv.innerHTML = `
+            <img src="${imgSrc}" alt="${ingredient}">
+            <p>${ingredient}</p>
+          `;
+
+          ingredientsContainer.appendChild(ingredientDiv);
+        });
+
+      } catch (error) {
+        console.error("Error fetching recipe:", error);
+      }
+    }
+
+    fetchRecipe();
+  </script>
+
+</body>
+</html>
